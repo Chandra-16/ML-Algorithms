@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 # Load model
-model = joblib.load("models/laptop_price_model.pkl")
+model = joblib.load("LinearRegression/models/laptop_price_model.pkl")
 
 st.set_page_config(page_title="Laptop Price Predictor", page_icon="💻")
 
