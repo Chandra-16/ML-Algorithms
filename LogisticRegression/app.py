@@ -1,10 +1,12 @@
 import streamlit as st
 import numpy as np
+import os
 import joblib
 
-# Load model and scaler
-model = joblib.load("models/logistic_model.pkl")
-scaler = joblib.load("models/scaler.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+model = joblib.load(os.path.join(BASE_DIR, "models", "logistic_model.pkl"))
+scaler = joblib.load(os.path.join(BASE_DIR, "models", "scaler.pkl"))
 
 st.set_page_config(page_title="Heart Disease Prediction", layout="centered")
 
