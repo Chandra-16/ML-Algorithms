@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 import joblib
 import os
@@ -7,80 +6,80 @@ import os
 # Deployment-safe paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-model = joblib.load(os.path.join(BASE_DIR, "models", "svr_model.pkl"))
+model = joblib.load(os.path.join(BASE_DIR, "models", "svc_model.pkl"))
 scaler = joblib.load(os.path.join(BASE_DIR, "models", "scaler.pkl"))
 
-# Load original dataset for column alignment
-df = pd.read_csv(os.path.join(BASE_DIR, "data", "laptop_prices.csv"))
+st.set_page_config(page_title="Heart Disease Prediction", layout="centered")
 
-st.set_page_config(page_title="Laptop Price Prediction", layout="centered")
+st.title("Heart Disease Prediction using Support Vector Classification (SVC)")
+st.write("Enter patient details to predict heart disease risk.")
 
-st.title("Laptop Price Prediction using Support Vector Regression")
+# Inputs
+age = st.number_input("Age", min_value=1, max_value=120, value=50)
 
-st.write("Enter laptop specifications to predict price.")
+sex = st.selectbox(
+    "Sex",
+    [0, 1],
+    format_func=lambda x: "Female" if x == 0 else "Male"
+)
 
-# User Inputs
-company = st.selectbox("Company", df["Company"].unique())
-product = st.selectbox("Product", df["Product"].unique())
-typename = st.selectbox("Type", df["TypeName"].unique())
-inches = st.number_input("Screen Size (Inches)", value=15.6)
-ram = st.number_input("RAM (GB)", value=8)
-os_name = st.selectbox("Operating System", df["OS"].unique())
-weight = st.number_input("Weight (kg)", value=2.0)
-screen = st.selectbox("Screen Type", df["Screen"].unique())
-screenw = st.number_input("Screen Width", value=1920)
-screenh = st.number_input("Screen Height", value=1080)
-touchscreen = st.selectbox("Touchscreen", df["Touchscreen"].unique())
-ipspanel = st.selectbox("IPS Panel", df["IPSpanel"].unique())
-retina = st.selectbox("Retina Display", df["RetinaDisplay"].unique())
-cpu_company = st.selectbox("CPU Company", df["CPU_company"].unique())
-cpu_freq = st.number_input("CPU Frequency (GHz)", value=2.5)
-cpu_model = st.selectbox("CPU Model", df["CPU_model"].unique())
-primary_storage = st.number_input("Primary Storage (GB)", value=256)
-secondary_storage = st.number_input("Secondary Storage (GB)", value=0)
-primary_storage_type = st.selectbox("Primary Storage Type", df["PrimaryStorageType"].unique())
-secondary_storage_type = st.selectbox("Secondary Storage Type", df["SecondaryStorageType"].unique())
-gpu_company = st.selectbox("GPU Company", df["GPU_company"].unique())
-gpu_model = st.selectbox("GPU Model", df["GPU_model"].unique())
+cp = st.selectbox("Chest Pain Type", [0, 1, 2, 3])
 
-if st.button("Predict Price"):
+trestbps = st.number_input("Resting Blood Pressure", value=120)
 
-    input_dict = {
-        "Company": company,
-        "Product": product,
-        "TypeName": typename,
-        "Inches": inches,
-        "Ram": ram,
-        "OS": os_name,
-        "Weight": weight,
-        "Screen": screen,
-        "ScreenW": screenw,
-        "ScreenH": screenh,
-        "Touchscreen": touchscreen,
-        "IPSpanel": ipspanel,
-        "RetinaDisplay": retina,
-        "CPU_company": cpu_company,
-        "CPU_freq": cpu_freq,
-        "CPU_model": cpu_model,
-        "PrimaryStorage": primary_storage,
-        "SecondaryStorage": secondary_storage,
-        "PrimaryStorageType": primary_storage_type,
-        "SecondaryStorageType": secondary_storage_type,
-        "GPU_company": gpu_company,
-        "GPU_model": gpu_model
-    }
+chol = st.number_input("Cholesterol", value=200)
 
-    input_df = pd.DataFrame([input_dict])
+fbs = st.selectbox(
+    "Fasting Blood Sugar > 120 mg/dl",
+    [0, 1]
+)
 
-    X = df.drop("Price_euros", axis=1)
-    X_encoded = pd.get_dummies(X, drop_first=True)
+restecg = st.selectbox("Resting ECG", [0, 1, 2])
 
-    input_encoded = pd.get_dummies(input_df, drop_first=True)
+thalach = st.number_input("Maximum Heart Rate Achieved", value=150)
 
-    input_encoded = input_encoded.reindex(columns=X_encoded.columns, fill_value=0)
+exang = st.selectbox(
+    "Exercise Induced Angina",
+    [0, 1]
+)
 
-    input_scaled = scaler.transform(input_encoded)
+oldpeak = st.number_input("ST Depression", value=1.0)
+
+slope = st.selectbox("Slope", [0, 1, 2])
+
+ca = st.selectbox(
+    "Number of Major Vessels",
+    [0, 1, 2, 3, 4]
+)
+
+thal = st.selectbox("Thal", [0, 1, 2, 3])
+
+if st.button("Predict"):
+
+    input_data = np.array([[
+        age,
+        sex,
+        cp,
+        trestbps,
+        chol,
+        fbs,
+        restecg,
+        thalach,
+        exang,
+        oldpeak,
+        slope,
+        ca,
+        thal
+    ]])
+
+    input_scaled = scaler.transform(input_data)
 
     prediction = model.predict(input_scaled)
+    probability = model.predict_proba(input_scaled)
 
-    st.success(f"Predicted Laptop Price: € {prediction[0]:.2f}")
+    risk = probability[0][1] * 100
+
+    if prediction[0] == 1:
+        st.error(f"Heart Disease Detected\nRisk Probability: {risk:.2f}%")
+    else:
+        st.success(f"No Heart Disease Detected\nRisk Probability: {risk:.2f}%")
